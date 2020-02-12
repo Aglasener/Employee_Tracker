@@ -196,7 +196,7 @@ function addRole(){
     },
     {
       name: "roleSalary",
-      type: "input",
+      type: "number",
       message: "What is the salary of this role?"
     },
     {
@@ -234,31 +234,44 @@ function addRole(){
 })};
 
 function removeRole(){
+  connection.query("SELECT * FROM role", function(err, results) {
+  if (err) throw err;
   inquirer.prompt([
     {
       name: "roleDelete",
-      type: "input",
+      type: "rawlist",
+      choices: function() {
+        var choiceArray = [];
+        for (var i = 0; i < results.length; i++) {
+          choiceArray.push(results[i].title);
+        }
+        return choiceArray;},
       message: "What role would you like to remove?"
     }
   ])
   .then(function(answer) {
   //get role id
-  var query = "";
-  connection.query("DELETE FROM role WHERE id = ?", [query], function(err, result) {
+  var roleId;
+      for (var i = 0; i < results.length; i++) {
+        if (results[i].title === answer.roleDelete) {
+              roleId = results[i].id;
+            }
+          };
+  connection.query("DELETE FROM role WHERE id = ?", [roleId], function(err, result) {
     if (err) {
       // If an error occurred, send a generic server failure
-      return res.status(500).end();
+      return result.status(500).end();
     }
     else if (result.affectedRows === 0) {
       // If no rows were changed, then the ID must not exist, so 404
-      return res.status(404).end();
+      return result.status(404).end();
     }
-    res.status(200);
+    result.status(200);
     console.log("Role removed succesfully!");
     start();
   });
 });
-};
+})};
 
 
 // // function to handle posting new items up for auction
