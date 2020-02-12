@@ -177,12 +177,12 @@ function updateMan(){
 };
 
 function viewRole(){
-  var query = "SELECT employee.id, first_name, last_name, role.title, role.salary, department.name FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id ORDER BY role.title";
+  var query = "SELECT * FROM role";
   connection.query(query, function(err, data) {
       if (err) throw err;
       console.table(data);
+      start();
  });
- start();
 };
 
 function addRole(){
@@ -213,7 +213,12 @@ function addRole(){
   ])
   .then(function(answer) {
     //grab department id
-    var departmentId = results.indexOf(answer.roleDepartment);
+    var departmentId;
+      for (var i = 0; i < results.length; i++) {
+        if (results[i].name === answer.roleDepartment) {
+              departmentId = results[i].id;
+            }
+          };
     connection.query("INSERT INTO role SET ?",
       {
         title: answer.roleTitle,
