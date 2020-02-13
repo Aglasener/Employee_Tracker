@@ -142,31 +142,43 @@ function addEmp(){
 };
 
 function removeEmp(){
+  connection.query("SELECT * FROM employee", function(err, results) {
+  if (err) throw err;
   inquirer.prompt([
     {
       name: "employeeDelete",
-      type: "input",
+      type: "rawlist",
+      choices: function() {
+        var choiceArray = [];
+        for (var i = 0; i < results.length; i++) {
+          choiceArray.push(results[i].first_name + " " + results[i].last_name);
+        }
+        return choiceArray;},
       message: "Which employee would you like to remove?"
     }
   ])
   .then(function(answer) {
   //get employee id
-  var query = "";
-  connection.query("DELETE FROM employee WHERE id = ?", [query], function(err, result) {
+  var employeeId;
+      for (var i = 0; i < results.length; i++) {
+        if (results[i].first_name + " " + results[i].last_name === answer.employeeDelete) {
+              employeeId = results[i].id;
+            }
+          };
+  connection.query("DELETE FROM employee WHERE id = ?", [employeeId], function(err, res) {
     if (err) {
       // If an error occurred, send a generic server failure
       return res.status(500).end();
     }
-    else if (result.affectedRows === 0) {
+    else if (results.affectedRows === 0) {
       // If no rows were changed, then the ID must not exist, so 404
       return res.status(404).end();
     }
-    res.status(200);
     console.log("Employee removed succesfully!");
     start();
   });
 });
-};
+})};
 
 function updateRole(){
 
