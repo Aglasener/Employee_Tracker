@@ -185,8 +185,76 @@ function removeEmp(){
 })};
 
 function updateRole(){
-
-};
+  
+  connection.query("SELECT role.id, role.title, role.salary, role.department_id, department.name FROM employee_tracker_db.role JOIN employee_tracker_db.department WHERE role.department_id = department.id;", function(err, results) {
+    if (err) throw err;
+    inquirer.prompt([
+      {
+        name: "roleUpdate",
+        type: "rawlist",
+        choices: function() {
+          var choiceArray = [];
+          for (var i = 0; i < results.length; i++) {
+            choiceArray.push(results[i].title);
+          }
+          return choiceArray;},
+        message: "What role would you like to update?"
+      },
+      {
+        name: "roleTitle",
+        type: "input",
+        message: "What is updated title of this role?"
+      },
+      {
+        name: "roleSalary",
+        type: "number",
+        message: "What is the updated salary of this role?"
+      },
+      {
+        name: "roleDepartment",
+        type: "rawlist",
+        choices: function() {
+          var choiceArray = [];
+          for (var i = 0; i < results.length; i++) {
+            choiceArray.push(results[i].name);
+          }
+          return choiceArray;},
+        message: "What department is this updated role in?"
+      }
+    ]).then(function(answer){
+      var roleId;
+      for (var i = 0; i < results.length; i++) {
+        if (results[i].title === answer.roleUpdate) {
+              roleId = results[i].id;
+            }
+          };
+          
+      var departmentId;
+      for (var i = 0; i < results.length; i++) {
+        if (results[i].name === answer.roleDepartment) {
+                departmentId = results[i].department_id;
+              }
+            };
+          connection.query("UPDATE role SET ? WHERE ?",
+          [ 
+            {
+            title: answer.roleTitle,
+            salary: answer.roleSalary,
+            department_id: departmentId
+            },
+            {
+            id: roleId
+            }
+          ],  
+            function(err) {
+              if (err) throw err;
+              console.log("Role updated succesfully!");
+              start();
+            }
+          )
+        });    
+  })};
+  
 
 function updateMan(){
 
