@@ -40,6 +40,8 @@ connection.connect(function(err) {
                     "View All Roles",
                     "Add Role",
                     "Remove Role",
+                    "Add Department",
+                    "Remove Department",
                     "Close"
                 ]
       })
@@ -69,6 +71,12 @@ connection.connect(function(err) {
         else if(answer.initial_action === "Remove Role") {
           removeRole();
         }
+        else if(answer.initial_action === "Add Department"){
+          addDep();
+        }
+        else if(answer.initial_action === "Remove Department"){
+          removeDep(); 
+        }
         else {
             connection.end();
         }
@@ -91,6 +99,28 @@ function viewDep(){
         console.table(data);
    });
    start();
+};
+
+function addDep(){
+  inquirer.prompt([
+    {
+      name: "departmentName",
+      type: "input",
+      message: "What is the name of this department?"
+    }
+  ])
+  .then(function(answer) {
+    
+    connection.query("INSERT INTO department SET ?",
+      {
+        name: answer.departmentName
+      },
+      function(err) {
+      if (err) throw err;
+      console.log("Department added succesfuly!");
+      start();
+      }
+  )})
 };
 
 function addEmp(){
@@ -332,4 +362,35 @@ function removeRole(){
 });
 })};
 
-
+function removeDep(){
+  connection.query("SELECT * FROM department", function(err, results) {
+    if (err) throw err;
+    inquirer.prompt([
+      {
+        name: "departmentDelete",
+        type: "rawlist",
+        choices: function() {
+          var choiceArray = [];
+          for (var i = 0; i < results.length; i++) {
+            choiceArray.push(results[i].name);
+          }
+          return choiceArray;},
+        message: "Which department would you like to remove?"
+      }
+    ])
+    .then(function(answer) {
+    //get department id
+    var departmentId;
+        for (var i = 0; i < results.length; i++) {
+          if (results[i].name === answer.departmentDelete) {
+                departmentId = results[i].id;
+              }
+            };
+    connection.query("DELETE FROM department WHERE id = ?", [departmentId], function(err, res) {
+      if (err) throw err;
+      console.log("Department removed succesfully!");
+      start();
+    });
+  });
+  })
+}
