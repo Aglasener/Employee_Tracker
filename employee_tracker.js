@@ -106,6 +106,7 @@ function viewMan(){
 };
 
 function addEmp(){
+  connection.query("SELECT * FROM role", function(err, results) {
   inquirer.prompt([
       {
         name: "firstName",
@@ -119,19 +120,29 @@ function addEmp(){
       },
       {
         name: "employeeRole",
-        type: "input",
+        type: "rawlist",
+        choices: function() {
+          var choiceArray = [];
+          for (var i = 0; i < results.length; i++) {
+            choiceArray.push(results[i].title);
+          }
+          return choiceArray;},
         message: "What is the employee's role?"
       }
     ])
     .then(function(answer) {
-      //grab employee manager id
-      //grab role id
-      var query = "";
+      
+      var roleId;
+      for (var i = 0; i < results.length; i++) {
+        if (results[i].title === answer.employeeRole) {
+              roleId = results[i].id;
+            }
+          };
       connection.query("INSERT INTO employee SET ?",
         {
           first_name: answer.firstName,
           last_name: answer.lastName,
-          role_id: answer.employeeRole,
+          role_id: roleId
         },
         function(err) {
         if (err) throw err;
@@ -139,7 +150,7 @@ function addEmp(){
         start();
         }
     )})
-};
+})};
 
 function removeEmp(){
   connection.query("SELECT * FROM employee", function(err, results) {
@@ -166,14 +177,7 @@ function removeEmp(){
             }
           };
   connection.query("DELETE FROM employee WHERE id = ?", [employeeId], function(err, res) {
-    if (err) {
-      // If an error occurred, send a generic server failure
-      return res.status(500).end();
-    }
-    else if (results.affectedRows === 0) {
-      // If no rows were changed, then the ID must not exist, so 404
-      return res.status(404).end();
-    }
+    if (err) throw err;
     console.log("Employee removed succesfully!");
     start();
   });
@@ -270,15 +274,7 @@ function removeRole(){
             }
           };
   connection.query("DELETE FROM role WHERE id = ?", [roleId], function(err, result) {
-    if (err) {
-      // If an error occurred, send a generic server failure
-      return result.status(500).end();
-    }
-    else if (result.affectedRows === 0) {
-      // If no rows were changed, then the ID must not exist, so 404
-      return result.status(404).end();
-    }
-    result.status(200);
+    if (err) throw err;
     console.log("Role removed succesfully!");
     start();
   });
